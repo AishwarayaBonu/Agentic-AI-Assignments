@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Experiment 4 — SQL Agent with Tool Use</title>
+<style>
+  @page { margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #0a0e14; }
+
+  body {
+    background: #0a0e14;
+    color: #c9d1d9;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    width: 960px;
+    padding: 64px 88px 80px 88px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #7ee0c9;
+    font-weight: 600;
+    margin-bottom: 40px;
+  }
+  .eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #7ee0c9;
+  }
+
+  .num {
+    font-size: 40px;
+    font-weight: 800;
+    color: #6ee7d8;
+    font-family: "Courier New", monospace;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #f2f5f7;
+    letter-spacing: -0.3px;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 15px;
+    color: #8b96a5;
+    margin-bottom: 20px;
+  }
+
+  .pill {
+    display: inline-block;
+    font-family: "Courier New", monospace;
+    font-size: 12.5px;
+    color: #6ee7d8;
+    background: rgba(110, 231, 216, 0.08);
+    border: 1px solid rgba(110, 231, 216, 0.35);
+    border-radius: 20px;
+    padding: 6px 16px;
+    margin-bottom: 26px;
+  }
+
+  .lede {
+    border-left: 3px solid #6ee7d8;
+    background: #10161f;
+    padding: 18px 22px;
+    font-style: italic;
+    font-size: 14.5px;
+    color: #b9c2cd;
+    line-height: 1.55;
+    border-radius: 4px;
+    margin-bottom: 40px;
+  }
+
+  .section-label {
+    font-size: 11.5px;
+    letter-spacing: 2px;
+    color: #6ee7d8;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+
+  .workflow { margin-bottom: 40px; }
+  .step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .step-num {
+    flex: none;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #6ee7d8;
+    color: #0a0e14;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-body h3 {
+    font-size: 15px;
+    color: #f2f5f7;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  .step-body p {
+    font-size: 13.5px;
+    color: #8b96a5;
+    line-height: 1.5;
+  }
+
+  .vsref {
+    display: flex;
+    gap: 18px;
+    background: #10161f;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 34px;
+  }
+  .vsref .tag {
+    flex: none;
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    color: #d4a72c;
+    font-weight: 700;
+    padding-top: 2px;
+  }
+  .vsref ul { list-style: none; }
+  .vsref li {
+    font-size: 13.5px;
+    color: #b9c2cd;
+    line-height: 1.55;
+    margin-bottom: 10px;
+    padding-left: 16px;
+    position: relative;
+  }
+  .vsref li::before {
+    content: "•";
+    color: #d4a72c;
+    position: absolute; left: 0;
+  }
+  .vsref li:last-child { margin-bottom: 0; }
+
+  .code-block {
+    background: #10161f;
+    border: 1px solid #1e2733;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 18px;
+    background: #151c26;
+    font-family: "Courier New", monospace;
+    font-size: 12.5px;
+    color: #8b96a5;
+    border-bottom: 1px solid #1e2733;
+  }
+  .code-header .dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #3a4453;
+    margin-left: 4px;
+  }
+  pre {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.65;
+    padding: 18px 20px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .ln { color: #4a5568; display: inline-block; width: 22px; user-select: none; }
+  .kw { color: #ff7ab6; }
+  .fn { color: #7ee0c9; }
+  .str { color: #ffd88a; }
+  .cm { color: #5c6773; font-style: italic; }
+  .plain { color: #c9d1d9; }
+
+  .demo-link {
+    font-family: "Courier New", monospace;
+    font-size: 12.5px;
+    color: #6a7480;
+    margin-bottom: 44px;
+  }
+  .demo-link a { color: #6ee7d8; }
+
+  table.sidebyside {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  table.sidebyside th {
+    background: linear-gradient(90deg, #d9418f, #6ee7d8);
+    color: #0a0e14;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-align: left;
+    padding: 12px 16px;
+  }
+  table.sidebyside td {
+    font-size: 13px;
+    color: #b9c2cd;
+    padding: 14px 16px;
+    border-bottom: 1px solid #1e2733;
+    vertical-align: top;
+  }
+  table.sidebyside td:first-child {
+    color: #f2f5f7;
+    font-weight: 700;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    color: #4a5568;
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid #1e2733;
+  }
+</style>
+</head>
+<body>
+
+  <div class="eyebrow"><span class="dot"></span>APPLIED LLM ENGINEERING · LIVE BUILD LOG</div>
+
+  <div class="num">04</div>
+  <h1>SQL Agent with Tool Use</h1>
+  <div class="subtitle">Reason step-by-step over database tools</div>
+  <div class="pill">▶ think → act → observe → repeat</div>
+
+  <div class="lede">
+    Doesn't write one query and hope. The agent is given three narrow tools — list tables, inspect
+    schema, run query — and decides at each step which to call, reading the result before deciding
+    its next move.
+  </div>
+
+  <div class="section-label">WORKFLOW</div>
+  <div class="workflow">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Think</h3>
+        <p>The LLM is given the question and a list of available tools, with no schema up front. It decides what it needs to know first.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Act</h3>
+        <p>It calls exactly one tool — <em>list_tables</em>, <em>get_schema(table)</em>, or <em>run_query(sql)</em> — never more than one per step.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Observe</h3>
+        <p>The tool's output — a table list, a schema, a query result, or an error — is appended to the conversation as an observation.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Repeat or answer</h3>
+        <p>The LLM re-reads everything so far and either takes another action or, once it has enough, stops and answers in plain English.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="vsref">
+    <div class="tag">VS REFERENCE</div>
+    <ul>
+      <li>Reference (and Experiment 1) generates a full query in one shot, against tables chosen by embedding retrieval. This agent doesn't know the schema at all until it asks — schema access is a tool call, not a precondition.</li>
+      <li>Failure handling isn't a separate repair function — a query error is just another observation the same loop reasons over, no special-cased retry path.</li>
+      <li>The trace is inherently multi-step and inspectable: every Thought/Action/Observation is a discrete, loggable turn, not two LLM calls hidden inside one function.</li>
+    </ul>
+  </div>
+
+  <div class="section-label">IMPLEMENTATION</div>
+  <div class="code-block">
+    <div class="code-header">
+      <span>sql_tool_agent.py</span>
+      <span class="dots"><span></span><span></span><span></span></span>
+    </div>
+    <pre><span class="ln">1</span><span class="kw">TOOLS</span> = {
+<span class="ln">2</span>    <span class="str">"list_tables"</span>: <span class="kw">lambda</span> conn: <span class="fn">list_tables</span>(conn),
+<span class="ln">3</span>    <span class="str">"get_schema"</span>: <span class="kw">lambda</span> conn, table: <span class="fn">get_schema</span>(conn, table),
+<span class="ln">4</span>    <span class="str">"run_query"</span>: <span class="kw">lambda</span> conn, sql: <span class="fn">execute</span>(conn, sql),
+<span class="ln">5</span>}
+<span class="ln">6</span>
+<span class="ln">7</span><span class="kw">def</span> <span class="fn">react_loop</span>(conn, question: <span class="kw">str</span>, max_steps=<span class="str">6</span>):
+<span class="ln">8</span>    history = [<span class="str">f"Question: {question}"</span>]
+<span class="ln">9</span>
+<span class="ln">10</span>    <span class="kw">for</span> step <span class="kw">in</span> <span class="fn">range</span>(max_steps):
+<span class="ln">11</span>        system_prompt = <span class="str">"""You are a SQL agent. At each step choose ONE:</span>
+<span class="ln">12</span><span class="str">        - list_tables()</span>
+<span class="ln">13</span><span class="str">        - get_schema(table)</span>
+<span class="ln">14</span><span class="str">        - run_query(sql)   # SELECT/WITH only</span>
+<span class="ln">15</span><span class="str">        - answer(text)      # when you have enough to respond</span>
+<span class="ln">16</span>
+<span class="ln">17</span><span class="str">        Reply as: Thought: ...\nAction: tool_name(args)"""</span>
+<span class="ln">18</span>
+<span class="ln">19</span>        response = <span class="fn">call_llm</span>(system_prompt, <span class="str">"\n"</span>.join(history))
+<span class="ln">20</span>        thought, action = <span class="fn">parse_action</span>(response)
+<span class="ln">21</span>        history.append(<span class="str">f"Thought: {thought}"</span>)
+<span class="ln">22</span>
+<span class="ln">23</span>        <span class="kw">if</span> action.tool == <span class="str">"answer"</span>:
+<span class="ln">24</span>            <span class="kw">return</span> action.args[<span class="str">"text"</span>]
+<span class="ln">25</span>
+<span class="ln">26</span>        <span class="kw">try</span>:
+<span class="ln">27</span>            observation = TOOLS[action.tool](conn, *action.args.values())
+<span class="ln">28</span>        <span class="kw">except</span> SqlError <span class="kw">as</span> err:
+<span class="ln">29</span>            observation = <span class="str">f"Error: {err}"</span>
+<span class="ln">30</span>
+<span class="ln">31</span>        history.append(<span class="str">f"Action: {action.tool}({action.args})"</span>)
+<span class="ln">32</span>        history.append(<span class="str">f"Observation: {observation}"</span>)
+<span class="ln">33</span>
+<span class="ln">34</span>    <span class="kw">return</span> <span class="str">"Could not resolve within step limit."</span></pre>
+  </div>
+
+  <div class="demo-link">live demo → <a>same warehouse as Experiment 1 — tool-calling loop replaces single-shot generation</a></div>
+
+  <div class="section-label">SIDE-BY-SIDE ADDITION</div>
+  <table class="sidebyside">
+    <tr>
+      <th>EXPERIMENT</th>
+      <th>DATA FED TO THE LLM</th>
+      <th>DISTINGUISHING FEATURE</th>
+    </tr>
+    <tr>
+      <td>SQL Agent with Tool Use</td>
+      <td>Question only, upfront — schema discovered via tool calls</td>
+      <td>Multi-step Thought/Action/Observation loop; error is just another observation</td>
+    </tr>
+  </table>
+
+  <div class="footer">
+    <span>APPLIED LLM ENGINEERING</span>
+    <span>04 EXPERIMENTS · LIVE BUILDS</span>
+  </div>
+
+</body>
+</html>
